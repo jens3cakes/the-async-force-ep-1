@@ -2,9 +2,6 @@ const person4 = new XMLHttpRequest();
 function person4Listener() {
   if (this.readyState === 4) {
     person4Name.innerHTML = JSON.parse(person4['responseText']).name;
-    //console.log('this is this',this)
-    //console.log(this.readyState)
-    //console.log(this.responseText);
   }
 }
 person4.addEventListener('load', person4Listener);
@@ -37,60 +34,52 @@ person14SpeciesEl.addEventListener('load', person14SpeciesElListener);
 person14SpeciesEl.open("GET", "https://swapi.co/api/species/1/")
 person14SpeciesEl.send();
 
-let makeClass = document.createElement('li');
-makeClass.className = ('film')
-filmList.appendChild(makeClass);
+const filmListElm = document.getElementById('filmList');
 
-let makeTitleClass = document.createElement('h2'); makeTitleClass.className = 'filmTitle'
-makeTitleClass.innerHTML;
-makeClass.appendChild(makeTitleClass);
-
-const swMovie1 = new XMLHttpRequest();
-function swMovie1Listener() {
-  makeTitleClass.innerHTML = JSON.parse(swMovie1.responseText).results[0].title;
+function getMovieList(url, callback) {
+  const getTitleList = new XMLHttpRequest();
+  getTitleList.addEventListener('load', callback);
+  getTitleList.open("GET", url);
+  getTitleList.send();
 }
-swMovie1.addEventListener('load', swMovie1Listener);
-swMovie1.open("GET", "https://swapi.co/api/films/");
-swMovie1.send();
 
-let planetsInMov1 = document.createElement('h3')
-planetsInMov1.innerHTML = "Planets";
-makeTitleClass.appendChild(planetsInMov1);
+function processMoviesRequest() {
+  const movies = JSON.parse(this.responseText)
+  if (movies) {
+    movies.results.forEach((movie) => {
+      const createLiElem = document.createElement('li');
+      createLiElem.className = 'film';
 
-let planetsInMov1List = document.createElement('ul');
-planetsInMov1List.className = 'filmPlanets';
-planetsInMov1.appendChild(planetsInMov1List);
+      const createH2Elem = document.createElement('h2');
+      createH2Elem.className = 'filmTitle';
+      createH2Elem.innerText = movie.title;
 
-let starWarsPlanet1 = document.createElement('li');
-starWarsPlanet1.id = 'Alderaan'
-//starWarsPlanet1.innerHTML;
-planetsInMov1List.appendChild(starWarsPlanet1)
+      const createH3Elem = document.createElement('h3'); createH3Elem.innerText = 'Planets';
+      createH2Elem.appendChild(createH3Elem)
+      createLiElem.appendChild(createH2Elem);
+      filmListElm.appendChild(createLiElem);
 
-const swMovie1Planet = new XMLHttpRequest();
-function swMovie1PlanetListener() {
-  starWarsPlanet1.innerHTML = JSON.parse(swMovie1Planet.responseText).name
+      movie.planets.forEach(planetUrl => {
+        const planetReq = new XMLHttpRequest()
+        planetReq.addEventListener("load", function () {
+          const planet = JSON.parse(this.responseText)
+
+          const createUlElem = document.createElement('ul');
+          createUlElem.className = 'filmPlanets';
+          createH3Elem.appendChild(createUlElem);
+
+          const createPlanetLiElem = document.createElement('li')
+          createUlElem.appendChild(createPlanetLiElem)
+
+          const createH4Elem = document.createElement('h4');
+          createH4Elem.innerText = planet.name;
+          createH4Elem.className = 'planetName'
+          createPlanetLiElem.appendChild(createH4Elem);
+        })
+        planetReq.open("GET", planetUrl)
+        planetReq.send();
+      })
+    })
+  }
 }
-swMovie1Planet.addEventListener('load', swMovie1PlanetListener);
-swMovie1Planet.open("GET", "https://swapi.co/api/planets/2/")
-swMovie1Planet.send();
-
-
-
-
-
-
-// }
-
-
-// let starWars2 = document.createElement('li');
-// starWars2.id = 'Attack Of The Clones';
-// starWars2.innerHTML;
-// filmList.appendChild(starWars2);
-
-// const swMovie2 = new XMLHttpRequest();
-// function swMovie2Listener(){
-//   starWars2.innerHTML = JSON.parse(swMovie2.responseText).results[1].title;
-// }
-// swMovie2.addEventListener('load',swMovie2Listener);
-// swMovie2.open("GET", "https://swapi.co/api/films/");
-// swMovie2.send();
+getMovieList("https://swapi.co/api/films/", processMoviesRequest)
